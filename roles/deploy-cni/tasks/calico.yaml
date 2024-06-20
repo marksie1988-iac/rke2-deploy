@@ -1,0 +1,27 @@
+- name: Download Calico manifests
+  get_url:
+    url: https://docs.projectcalico.org/manifests/calico.yaml
+    dest: /tmp/calico.yaml
+  when: "'servers' in group_names and inventory_hostname in groups['servers']"
+
+- name: Apply Calico manifests
+  command: kubectl apply -f /tmp/calico.yaml
+  when: "'servers' in group_names and inventory_hostname in groups['servers']"
+
+- name: Configure Calico for BGP
+  when: "'servers' in group_names and inventory_hostname in groups['servers'] and bgp_enabled"
+  template:
+    src: bgp-configuration.yaml.j2
+    dest: /etc/calico/bgp-configuration.yaml
+
+- name: Apply Calico BGP configuration
+  command: kubectl apply -f /etc/calico/bgp-configuration.yaml
+  when: "'servers' in group_names and inventory_hostname in groups['servers'] and bgp_enabled"
+
+- name: Render CalicoNodeStatus manifest template
+  template:
+    src: calico-node-status.yaml.j2
+    dest: /tmp/calico-node-status-{{ inventory_hostname }}.yaml
+
+- name: Apply CalicoNodeStatus manifest
+  command: kubectl apply -f /tmp/calico-node-status-{{ inventory_hostname }}.yaml

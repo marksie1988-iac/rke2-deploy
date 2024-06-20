@@ -1,0 +1,3 @@
+
+# Set the CNI to be used, currently flannel or calico with this 
+cni: flannel

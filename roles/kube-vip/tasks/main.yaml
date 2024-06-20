@@ -1,0 +1,30 @@
+# Create directory to deploy kube-vip manifest
+- name: Create directory for Kube VIP Manifest
+  ansible.builtin.file:
+    path: "/var/lib/rancher/rke2/server/manifests"
+    state: directory
+    mode: "0755"
+  when: inventory_hostname in groups['servers']
+
+# Determine the latest release version if kube_vip_version is "latest"
+- name: Get the latest kube-vip release information
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/kube-vip/kube-vip/releases/latest"
+    return_content: yes
+  when: kube_vip_version == "latest"
+  register: latest_kube_vip_release_info
+
+- name: Set latest kube-vip version
+  ansible.builtin.set_fact:
+    kube_vip_version: "{{ latest_kube_vip_release_info.json.tag_name }}"
+  when: kube_vip_version == "latest"
+
+# Copy kube-vip to server 1 manifest folder for auto deployment at bootstrap
+- name: Deploy Kube VIP Configuration
+  ansible.builtin.template:
+    src: templates/kube-vip-config.j2
+    dest: /var/lib/rancher/rke2/server/manifests/kube-vip.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups['servers'][0]
