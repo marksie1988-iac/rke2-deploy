@@ -1,0 +1,11 @@
+---
+vip: 172.16.20.50
+
+ansible_become: true
+ansible_become_method: sudo
+################################################################################
+# options to change default values
+# kube_vip_version: "latest"
+# vip_interface: "eth0"
+# rke2_version: "latest"
+# rke2_install_dir: "/usr/local/bin"

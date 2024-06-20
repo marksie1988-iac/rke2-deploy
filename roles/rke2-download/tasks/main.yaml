@@ -1,0 +1,33 @@
+# Create a directory to download RKE2 binary to
+- name: Create directory for RKE2 binary
+  ansible.builtin.file:
+    path: "{{ rke2_install_dir }}"
+    state: directory
+    mode: "0755"
+
+# Determine the latest release version if rke2_version is "latest"
+- name: Get the latest RKE2 release information
+  ansible.builtin.uri:
+    url: "https://api.github.com/repos/rancher/rke2/releases/latest"
+    return_content: yes
+  when: rke2_version == "latest"
+  register: latest_release_info
+
+- name: Set latest release version
+  ansible.builtin.set_fact:
+    rke2_version: "{{ latest_release_info.json.tag_name }}"
+  when: rke2_version == "latest"
+
+# Download the RKE2 binary
+- name: Download RKE2 binary
+  ansible.builtin.get_url:
+    url: "{{ rke2_binary_url }}"
+    dest: "{{ rke2_install_dir }}/rke2"
+    mode: "0755"
+
+# Set permissions on the RKE2 binary
+- name: Set executable permissions on the RKE2 binary
+  ansible.builtin.file:
+    path: "{{ rke2_install_dir }}/rke2"
+    mode: "0755"
+    state: file
