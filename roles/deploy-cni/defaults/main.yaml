@@ -1,0 +1,6 @@
+cni: flannel
+
+# Can only be used with calico CNI
+bgp_enabled: false # Set to true to enable BGP configuration
+peerIP: "192.168.1.1" # Default peer IP
+asNumber: 64513 # Default ASN
