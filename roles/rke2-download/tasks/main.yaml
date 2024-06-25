@@ -21,12 +21,12 @@
 - name: Determine system architectures
   set_fact:
     architecture_type: >-
-      {% if ansible_facts['architecture'] == 'x86_64' %}
+      {% if ansible_architecture == 'x86_64' %}
         amd64
-      {% elif ansible_facts['architecture'] == 'aarch64' %}
+      {% elif ansible_architecture == 'aarch64' %}
         arm64
       {% else %}
-        ansible_facts['architecture']
+        {{ ansible_architecture }}
       {% endif %}
 
 # Download the RKE2 binary
