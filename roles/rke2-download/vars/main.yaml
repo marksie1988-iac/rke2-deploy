@@ -1,2 +1,2 @@
 ---
-rke2_binary_url: "https://github.com/rancher/rke2/releases/download/{{ rke2_version }}/rke2.{{ ansible_distribution }}-{{ ansible_architecture }}"
+rke2_binary_url: "https://github.com/rancher/rke2/releases/download/{{ rke2_version }}/rke2.{{ ansible_facts['os_family'] | lower }}-{{ ansible_architecture }}"
