@@ -98,7 +98,7 @@
 # convert token to fact
 - name: Save Master node-token for later
   ansible.builtin.set_fact:
-    token: "{{ rke2_token.content | b64decode | regex_replace('\n', '') }}"
+    token: "{{ rke2_token['content'] | b64decode | regex_replace('\n', '') }}"
 
 # revert token file access
 - name: Restore node-token file access
