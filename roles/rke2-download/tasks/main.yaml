@@ -5,18 +5,15 @@
     state: directory
     mode: "0755"
 
-# Determine the latest release version if rke2_version is "latest"
-- name: Get the latest RKE2 release information
-  ansible.builtin.uri:
-    url: "https://api.github.com/repos/rancher/rke2/releases/latest"
-    return_content: yes
-  when: rke2_version == "latest"
-  register: latest_release_info
-
 - name: Set latest release version
   ansible.builtin.set_fact:
-    rke2_version: "{{ latest_release_info.json.tag_name }}"
+    rke2_url: "https://github.com/rancher/rke2/releases/latest/download/"
   when: rke2_version == "latest"
+
+- name: Set release version
+  ansible.builtin.set_fact:
+    rke2_url: "https://github.com/rancher/rke2/releases/download/{{ rke2_version }}"
+  when: rke2_version != "latest"
 
 - name: Determine system architectures
   set_fact:
