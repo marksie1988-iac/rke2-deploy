@@ -6,17 +6,16 @@
     mode: "0755"
   when: inventory_hostname in groups['servers']
 
-# Determine the latest release version if kube_vip_version is "latest"
-- name: Get the latest kube-vip release information
-  ansible.builtin.uri:
-    url: "https://api.github.com/repos/kube-vip/kube-vip/releases/latest"
+- name: Fetch GitHub tags page
+  uri:
+    url: "https://github.com/kube-vip/kube-vip/tags"
     return_content: yes
-  when: kube_vip_version == "latest"
-  register: latest_kube_vip_release_info
+  register: kube_vip_tags_page
+
 
 - name: Set latest kube-vip version
   ansible.builtin.set_fact:
-    kube_vip_version: "{{ latest_kube_vip_release_info.json.tag_name }}"
+    kube_vip_version: "{{ kube_vip_tags_page.content | regex_search('href=\"/[^\"]+/releases/tag/([^\"]+)', '\\1') | first }}"
   when: kube_vip_version == "latest"
 
 # Copy kube-vip to server 1 manifest folder for auto deployment at bootstrap
