@@ -1,6 +1,6 @@
 ---
 vip: 172.16.20.100
-
+cni: calico
 ansible_become: true
 ansible_become_method: sudo
 ################################################################################
