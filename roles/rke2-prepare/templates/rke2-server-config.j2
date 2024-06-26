@@ -1,4 +1,7 @@
 write-kubeconfig-mode: "0644"
+{% if inventory_hostname != groups['servers'][0] %}
+server: https://{{ vip }}:9345
+{% endif %}
 tls-san:
   - {{ vip }}
 {% for host in groups['servers'] %}
@@ -6,7 +9,6 @@ tls-san:
 {% endfor %}
 node-label:
   - server=true
-disable:
-  - rke2-ingress-nginx
-network:
-  cni: {{ cni }}
+#disable:
+#  - rke2-ingress-nginx
+cni: {{ cni }}

@@ -13,3 +13,13 @@
     state: present
     reload: true
   tags: sysctl
+
+- name: check packages
+  package_facts:
+    manager: auto
+
+- name: Copy network manager
+  copy:
+    src: calico-network-manager.conf
+    dest: /etc/NetworkManager/conf.d/calico.conf
+  when: "'NetworkManager' in ansible_facts.packages"

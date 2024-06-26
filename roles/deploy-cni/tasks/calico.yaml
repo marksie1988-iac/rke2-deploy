@@ -1,27 +1,81 @@
+- name: Check if tigera-operator namespace exists
+  ansible.builtin.command:
+    cmd: kubectl get namespace tigera-operator
+  register: namespace_result
+  failed_when: namespace_result.rc != 0
+  ignore_errors: true
+  become_user: "{{ ansible_user }}"
+
+- name: Set namespace existence fact
+  set_fact:
+    namespace_exists: "{{ namespace_result.rc == 0 }}"
+
+- name: Check if Tigera Operator pod exists
+  ansible.builtin.command:
+    cmd: kubectl get pods -n tigera-operator -l app=tigera-operator
+  register: pod_result
+  when: namespace_exists
+  failed_when: pod_result.rc != 0
+  ignore_errors: true
+  become_user: "{{ ansible_user }}"
+
+- name: Set pod existence fact
+  set_fact:
+    pod_exists: "{{ pod_result.rc == 0 }}"
+  when: namespace_exists
+
+- name: Ensure pod_exists is defined
+  set_fact:
+    pod_exists: false
+  when: pod_exists is not defined
+
+- name: Print result
+  debug:
+    msg: "Namespace exists: {{ namespace_exists }}, Pod exists: {{ pod_exists }}"
+
 - name: Download Calico manifests
-  get_url:
-    url: https://docs.projectcalico.org/manifests/calico.yaml
-    dest: /tmp/calico.yaml
-  when: "'servers' in group_names and inventory_hostname in groups['servers']"
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
+    dest: /var/lib/rancher/rke2/server/manifests/calico.yaml
+    force: true
+  when: not namespace_exists or not pod_exists
 
-- name: Apply Calico manifests
-  command: kubectl apply -f /tmp/calico.yaml
-  when: "'servers' in group_names and inventory_hostname in groups['servers']"
-
-- name: Configure Calico for BGP
-  when: "'servers' in group_names and inventory_hostname in groups['servers'] and bgp_enabled"
-  template:
-    src: bgp-configuration.yaml.j2
-    dest: /etc/calico/bgp-configuration.yaml
-
-- name: Apply Calico BGP configuration
-  command: kubectl apply -f /etc/calico/bgp-configuration.yaml
-  when: "'servers' in group_names and inventory_hostname in groups['servers'] and bgp_enabled"
+- name: Render CalicoConfig manifest template
+  ansible.builtin.template:
+    src: calico-config.yaml.j2
+    dest: /var/lib/rancher/rke2/server/manifests/calico-config.yaml
+    owner: root
+    group: root
+    mode: "0644"
 
 - name: Render CalicoNodeStatus manifest template
-  template:
+  ansible.builtin.template:
     src: calico-node-status.yaml.j2
-    dest: /tmp/calico-node-status-{{ inventory_hostname }}.yaml
+    dest: /var/lib/rancher/rke2/server/manifests/calico-node-status.yaml
+    owner: root
+    group: root
+    mode: "0644"
 
-- name: Apply CalicoNodeStatus manifest
-  command: kubectl apply -f /tmp/calico-node-status-{{ inventory_hostname }}.yaml
+- name: Create calicoctl directory
+  ansible.builtin.file:
+    path: /etc/calico
+    state: directory
+    mode: '0755'
+
+- name: Apply calicoctl config
+  ansible.builtin.template:
+    src: calicoctl.cfg.j2
+    dest: /etc/calico/calicoctl.cfg
+  become: true
+
+- name: Download calicoctl
+  get_url:
+    url: https://github.com/projectcalico/calico/releases/download/v3.28.0/calicoctl-linux-amd64
+    dest: /usr/local/bin/calicoctl
+    mode: '0755'
+
+- name: Ensure calicoctl is executable
+  file:
+    path: /usr/local/bin/calicoctl
+    mode: '0755'
+    state: file
