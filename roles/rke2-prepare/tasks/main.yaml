@@ -10,7 +10,7 @@
     state: directory
     mode: '0644'
 
-# Copy server config to server 1 for bootstrap - we need to change server2 & 3 later with the token
+# Copy server config to server 1 for bootstrap - additional servers will be done via add-server role
 - name: Deploy RKE2 server Configuration
   ansible.builtin.template:
     src: templates/rke2-server-config.j2
@@ -18,7 +18,7 @@
     owner: root
     group: root
     mode: '0644'
-  when: inventory_hostname in groups['servers']
+  when: inventory_hostname == groups['servers'][0]
 
 - name: Create systemd service file for RKE2 server
   ansible.builtin.template:
@@ -73,7 +73,7 @@
 - name: Wait for kubectl
   ansible.builtin.wait_for:
     path: /usr/local/bin/kubectl
-  when: inventory_hostname == groups['servers'][0]
+  when: inventory_hostname == groups['servers']
 
 # modify token access
 - name: Register node-token file access mode
