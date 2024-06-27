@@ -1,6 +1,6 @@
 - name: Deploy Calico configuration
   ansible.builtin.template:
-    src: calico-config.j2
+    src: calico-config.yaml.j2
     dest: /var/lib/rancher/rke2/server/manifests/calico-config.yaml
     owner: root
     group: root
