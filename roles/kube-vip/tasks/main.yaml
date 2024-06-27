@@ -7,7 +7,7 @@
   when: inventory_hostname in groups['servers']
 
 - name: Fetch GitHub tags page
-  uri:
+  ansible.builtin.uri:
     url: "https://github.com/kube-vip/kube-vip/tags"
     return_content: yes
   register: kube_vip_tags_page
@@ -21,7 +21,7 @@
 # Copy kube-vip to server 1 manifest folder for auto deployment at bootstrap
 - name: Deploy Kube VIP Configuration
   ansible.builtin.template:
-    src: templates/kube-vip-config.j2
+    src: kube-vip-config.j2
     dest: /var/lib/rancher/rke2/server/manifests/kube-vip.yaml
     owner: root
     group: root
