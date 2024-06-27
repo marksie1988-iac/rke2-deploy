@@ -1,11 +1,14 @@
+{% for host in groups['rke2'] %}
+---
 apiVersion: projectcalico.org/v3
 kind: CalicoNodeStatus
 metadata:
-  name: "calico-node-{{ inventory_hostname }}"
+  name: "calico-node-{{ host }}"
 spec:
   classes:
     - Agent
     - BGP
     - Routes
-  node: "{{ inventory_hostname }}"
+  node: "{{ host }}"
   updatePeriodSeconds: 10
+{% endfor %}
