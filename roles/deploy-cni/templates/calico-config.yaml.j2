@@ -1,41 +1,41 @@
-#apiVersion: projectcalico.org/v3
-#kind: BGPConfiguration
-#metadata:
-#  name: default
-#spec:
-#  asNumber: 64513
-#  nodeToNodeMeshEnabled: true
-#  serviceClusterIPs:
-#    - cidr: 10.43.0.0/16
-#  serviceExternalIPs:
-#    - cidr: 172.18.128.0/18
-#  serviceLoadBalancerIPs:
-#    - cidr: 172.18.192.0/18
-#---
-#apiVersion: projectcalico.org/v3
-#kind: BGPPeer
-#metadata:
-#  name: bgppeer-to-opnsense
-#spec:
-#  peerIP: "{{ peerIP }}"
-#  asNumber: "{{ asNumber }}"
-#  keepOriginalNextHop: true
-#  maxRestartTime: 15m
----
 apiVersion: operator.tigera.io/v1
 kind: Installation
 metadata:
   name: default
-spec:
-  # Configures Calico networking.
+spec: 
   calicoNetwork:
     ipPools:
-    - name: default-ipv4-ippool
-      blockSize: 26
-      cidr: 10.42.0.0/16
+    - cidr: 10.42.0.0/16
       encapsulation: VXLANCrossSubnet
       natOutgoing: Enabled
-      nodeSelector: all()
+      modeSelector: all()
+  kubernetesServiceHost: 10.43.0.10
+  kubernetesServicePort: 6443
+  serviceCIDR: 10.43.0.0/16
+---
+apiVersion: projectcalico.org/v3
+kind: BGPConfiguration
+metadata:
+  name: default
+spec:
+  asNumber: 64513
+  nodeToNodeMeshEnabled: true
+  serviceClusterIPs:
+    - cidr: 10.43.0.0/16
+  serviceExternalIPs:
+    - cidr: 172.18.128.0/18
+  serviceLoadBalancerIPs:
+    - cidr: 172.18.192.0/18
+---
+apiVersion: projectcalico.org/v3
+kind: BGPPeer
+metadata:
+  name: bgppeer-to-opnsense
+spec:
+  peerIP: "{{ peerIP }}"
+  asNumber: "{{ asNumber }}"
+  keepOriginalNextHop: true
+  maxRestartTime: 15m
 ---
 apiVersion: operator.tigera.io/v1
 kind: APIServer
