@@ -14,12 +14,12 @@
     reload: true
   tags: sysctl
 
-- name: Install network manager
-  ansible.builtin.package:
-    name: network-manager
-    state: present
+- name: check packages
+  package_facts:
+    manager: auto
 
-- name: Copy my_file.txt to remote server
+- name: Copy network manager
   copy:
     src: calico-network-manager.conf
     dest: /etc/NetworkManager/conf.d/calico.conf
+  when: "'NetworkManager' in ansible_facts.packages"

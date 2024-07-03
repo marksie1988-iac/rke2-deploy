@@ -69,12 +69,6 @@
   become: true
   when: inventory_hostname == groups['servers'][0]
 
-# wait for the kubectl copy to complete
-- name: Wait for kubectl
-  ansible.builtin.wait_for:
-    path: /usr/local/bin/kubectl
-  when: inventory_hostname == groups['servers']
-
 # modify token access
 - name: Register node-token file access mode
   ansible.builtin.stat:
@@ -130,5 +124,5 @@
   ansible.builtin.replace:
     path: /home/{{ ansible_user }}/.kube/config
     regexp: '127.0.0.1'
-    replace: "{{ hostvars[groups['servers'][0]]['ansible_host'] }}"
+    replace: "{{ vip }}"
   when: inventory_hostname == groups['servers'][0]

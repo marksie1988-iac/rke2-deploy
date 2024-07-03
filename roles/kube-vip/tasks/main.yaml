@@ -12,7 +12,6 @@
     return_content: yes
   register: kube_vip_tags_page
 
-
 - name: Set latest kube-vip version
   ansible.builtin.set_fact:
     kube_vip_version: "{{ kube_vip_tags_page.content | regex_search('href=\"/[^\"]+/releases/tag/([^\"]+)', '\\1') | first }}"
@@ -23,6 +22,24 @@
   ansible.builtin.template:
     src: kube-vip-config.j2
     dest: /var/lib/rancher/rke2/server/manifests/kube-vip.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups['servers'][0]
+
+- name: Download KubeVip config file
+  ansible.builtin.get_url:
+    url: https://kube-vip.io/manifests/rbac.yaml
+    dest: /var/lib/rancher/rke2/server/manifests/kube-rbac.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups['servers'][0]
+  
+- name: Download KubeVip config file
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/kube-vip/kube-vip-cloud-provider/main/manifest/kube-vip-cloud-controller.yaml
+    dest: /var/lib/rancher/rke2/server/manifests/kube-vip-controller.yaml
     owner: root
     group: root
     mode: "0644"

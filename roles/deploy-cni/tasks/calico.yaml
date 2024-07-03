@@ -3,7 +3,7 @@
     cmd: kubectl get namespace tigera-operator
   register: namespace_result
   failed_when: namespace_result.rc != 0
-  ignore_errors: yes
+  ignore_errors: true
   become_user: "{{ ansible_user }}"
 
 - name: Set namespace existence fact
@@ -16,7 +16,7 @@
   register: pod_result
   when: namespace_exists
   failed_when: pod_result.rc != 0
-  ignore_errors: yes
+  ignore_errors: true
   become_user: "{{ ansible_user }}"
 
 - name: Set pod existence fact
@@ -67,3 +67,15 @@
     src: calicoctl.cfg.j2
     dest: /etc/calico/calicoctl.cfg
   become: true
+
+- name: Download calicoctl
+  get_url:
+    url: https://github.com/projectcalico/calico/releases/download/v3.28.0/calicoctl-linux-amd64
+    dest: /usr/local/bin/calicoctl
+    mode: '0755'
+
+- name: Ensure calicoctl is executable
+  file:
+    path: /usr/local/bin/calicoctl
+    mode: '0755'
+    state: file
