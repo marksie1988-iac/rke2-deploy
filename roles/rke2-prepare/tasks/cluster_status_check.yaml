@@ -23,6 +23,7 @@
     retries: "{{ max_retries }}"
     delay: "{{ delay }}"
     changed_when: false
+    become_user: "{{ ansible_user }}"
 
   - name: Debug nodes_not_ready_count
     debug:
@@ -37,6 +38,7 @@
     retries: "{{ max_retries }}"
     delay: "{{ delay }}"
     changed_when: false
+    become_user: "{{ ansible_user }}"
 
   - name: Debug pods_not_running_count
     debug:
@@ -61,6 +63,7 @@
         fi
       done
     register: reboot_result
+    become_user: "{{ ansible_user }}"
 
   - name: Wait before retrying
     pause:
