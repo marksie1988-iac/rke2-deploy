@@ -28,11 +28,11 @@
     - kube-vip
 
 # Deploy CNI
-- name: Deploy CNI
-  hosts: servers
-  gather_facts: true
-  roles:
-    - deploy-cni
+#- name: Deploy CNI
+#  hosts: servers
+#  gather_facts: true
+#  roles:
+#    - deploy-cni
 
 # bootstraps the first server, copies configs to nodes, saves token to use later
 - name: Prepare RKE2 on Servers and Agents
