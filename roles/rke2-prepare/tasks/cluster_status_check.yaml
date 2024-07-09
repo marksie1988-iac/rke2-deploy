@@ -4,37 +4,36 @@
 
 - name: Ensure nodes and essential pods are ready (main loop)
   block:
-  - name: Gather information about all nodes
-    k8s_info:
-      kind: Node
-    register: nodes_info
-    until: >
-      nodes_info.resources | selectattr('status.conditions', 'selectattr', 'type', 'equalto', 'Ready')
-                           | selectattr('status.conditions', 'selectattr', 'status', 'equalto', 'True')
-                           | list | length == nodes_info.resources | length
+  - name: Check if all nodes are ready
+    shell: kubectl get nodes --no-headers | awk '{print $2}' | grep -v 'Ready' | wc -l
+    register: nodes_not_ready_count
+    until: nodes_not_ready_count.stdout | int == 0
     retries: "{{ max_retries }}"
     delay: "{{ delay }}"
     changed_when: false
 
-  - name: Gather information about essential pods
-    k8s_info:
-      kind: Pod
-      namespace: "{{ item }}"
-    loop: "{{ essential_namespaces }}"
-    register: pods_info
-    until: >
-      pods_info.results | map(attribute='resources') | flatten | selectattr('status.phase', 'equalto', 'Running')
-                       | list | length == pods_info.results | map(attribute='resources') | flatten | length
-    retries: "{{ max_retries }}"
-    delay: "{{ delay }}"
-    changed_when: false
+  - name: Debug nodes_not_ready_count
+    debug:
+      var: nodes_not_ready_count
 
   - name: Check if all essential pods are running
+    shell: |
+      kubectl get pods -n {{ item }} --no-headers | awk '{print $3}' | grep -v 'Running' | wc -l
+    loop: "{{ essential_namespaces }}"
+    register: pods_not_running_count
+    until: pods_not_running_count.results | map(attribute='stdout') | map('int') | sum == 0
+    retries: "{{ max_retries }}"
+    delay: "{{ delay }}"
+    changed_when: false
+
+  - name: Debug pods_not_running_count
+    debug:
+      var: pods_not_running_count
+
+  - name: Check if any essential pods are not running
     fail:
       msg: "Not all essential pods are in 'Running' state."
-    when: >
-      pods_info.results | map(attribute='resources') | flatten | selectattr('status.phase', 'equalto', 'Running')
-                       | list | length != pods_info.results | map(attribute='resources') | flatten | length
+    when: pods_not_running_count.results | map(attribute='stdout') | map('int') | sum != 0
 
   rescue:
   - name: Increment loop counter
