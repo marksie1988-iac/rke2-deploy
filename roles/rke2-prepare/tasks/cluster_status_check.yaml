@@ -1,0 +1,97 @@
+- name: Ensure nodes and essential pods are ready
+  block:
+  - name: Gather information about all nodes
+    k8s_info:
+      kind: Node
+    register: nodes_info
+    until: >
+      nodes_info.resources | selectattr('status.conditions', 'selectattr', 'type', 'equalto', 'Ready')
+                           | selectattr('status.conditions', 'selectattr', 'status', 'equalto', 'True')
+                           | list | length == nodes_info.resources | length
+    retries: "{{ max_retries }}"
+    delay: "{{ delay }}"
+    changed_when: false
+
+  - name: Gather information about essential pods
+    k8s_info:
+      kind: Pod
+      namespace: "{{ item }}"
+    loop: "{{ essential_namespaces }}"
+    register: pods_info
+    until: >
+      pods_info.results | map(attribute='resources') | flatten | selectattr('status.phase', 'equalto', 'Running')
+                       | list | length == pods_info.results | map(attribute='resources') | flatten | length
+    retries: "{{ max_retries }}"
+    delay: "{{ delay }}"
+    changed_when: false
+
+  - name: Check if all essential pods are running
+    fail:
+      msg: "Not all essential pods are in 'Running' state."
+    when: >
+      pods_info.results | map(attribute='resources') | flatten | selectattr('status.phase', 'equalto', 'Running')
+                       | list | length != pods_info.results | map(attribute='resources') | flatten | length
+
+  rescue:
+  - name: Reboot nodes that are not ready
+    shell: |
+      for node in $(kubectl get nodes --no-headers | awk '{print $1}'); do
+        if ! kubectl get node $node -o json | jq -e '.status.conditions[] | select(.type=="Ready" and .status=="True")'; then
+          kubectl drain $node --ignore-daemonsets --delete-emptydir-data
+          kubectl delete node $node
+          # Assuming you have a mechanism to automatically re-provision the node, e.g., auto-scaling group or similar.
+        fi
+      done
+    register: reboot_result
+
+- name: Loop through the block 3 times
+  until: block_execution_status is success
+  retries: "{{ max_loops }}"
+  delay: 60
+  register: block_execution_status
+  block:
+  - name: Ensure nodes and essential pods are ready
+    block:
+    - name: Gather information about all nodes
+      k8s_info:
+        kind: Node
+      register: nodes_info
+      until: >
+        nodes_info.resources | selectattr('status.conditions', 'selectattr', 'type', 'equalto', 'Ready')
+                             | selectattr('status.conditions', 'selectattr', 'status', 'equalto', 'True')
+                             | list | length == nodes_info.resources | length
+      retries: "{{ max_retries }}"
+      delay: "{{ delay }}"
+      changed_when: false
+
+    - name: Gather information about essential pods
+      k8s_info:
+        kind: Pod
+        namespace: "{{ item }}"
+      loop: "{{ essential_namespaces }}"
+      register: pods_info
+      until: >
+        pods_info.results | map(attribute='resources') | flatten | selectattr('status.phase', 'equalto', 'Running')
+                         | list | length == pods_info.results | map(attribute='resources') | flatten | length
+      retries: "{{ max_retries }}"
+      delay: "{{ delay }}"
+      changed_when: false
+
+    - name: Check if all essential pods are running
+      fail:
+        msg: "Not all essential pods are in 'Running' state."
+      when: >
+        pods_info.results | map(attribute='resources') | flatten | selectattr('status.phase', 'equalto', 'Running')
+                         | list | length != pods_info.results | map(attribute='resources') | flatten | length
+
+    rescue:
+    - name: Reboot nodes that are not ready
+      shell: |
+        for node in $(kubectl get nodes --no-headers | awk '{print $1}'); do
+          if ! kubectl get node $node -o json | jq -e '.status.conditions[] | select(.type=="Ready" and .status=="True")'; then
+            kubectl drain $node --ignore-daemonsets --delete-emptydir-data
+            kubectl delete node $node
+            # Assuming you have a mechanism to automatically re-provision the node, e.g., auto-scaling group or similar.
+          fi
+        done
+      register: reboot_result

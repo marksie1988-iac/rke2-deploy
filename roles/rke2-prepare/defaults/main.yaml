@@ -1,3 +1,11 @@
 
 # Set the CNI to be used, currently calico with this
 cni: calico
+
+max_retries: 10
+delay: 30
+max_loops: 3
+essential_namespaces:
+- calico-system
+- kube-system
+- tigera-operator
