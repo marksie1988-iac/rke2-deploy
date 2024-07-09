@@ -1,3 +1,15 @@
+# Keep checking the cluster API until it's functioning (deployed)
+- name: Wait for cluster API to be ready (can take 5-10 mins depending on internet/hardware)
+  ansible.builtin.command:
+    cmd: "kubectl get nodes"
+  register: kubectl_output
+  until: "'connection refused' not in kubectl_output.stderr"
+  retries: 120
+  delay: 10
+  changed_when: true
+  become_user: "{{ ansible_user }}"
+  when: inventory_hostname == groups['servers'][0]
+
 - name: Set initial loop counter
   set_fact:
     loop_counter: 0
@@ -44,9 +56,8 @@
     shell: |
       for node in $(kubectl get nodes --no-headers | awk '{print $1}'); do
         if ! kubectl get node $node -o json | jq -e '.status.conditions[] | select(.type=="Ready" and .status=="True")'; then
-          kubectl drain $node --ignore-daemonsets --delete-emptydir-data
-          kubectl delete node $node
-          # Assuming you have a mechanism to automatically re-provision the node, e.g., auto-scaling group or similar.
+          node_ip=$(kubectl get node $node -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')
+          ssh -o StrictHostKeyChecking=no root@$node_ip "reboot"
         fi
       done
     register: reboot_result

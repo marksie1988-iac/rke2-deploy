@@ -3,7 +3,7 @@
 cni: calico
 
 max_retries: 10
-delay: 30
+delay: 60
 max_loops: 3
 essential_namespaces:
 - calico-system
