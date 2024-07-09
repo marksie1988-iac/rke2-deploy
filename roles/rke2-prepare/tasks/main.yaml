@@ -130,3 +130,4 @@
 # Checks the status of the cluster, reboots if not ready quick enough
 - name: Include status check
   import_tasks: cluster_status_check.yaml
+  when: inventory_hostname == groups['servers'][0]
