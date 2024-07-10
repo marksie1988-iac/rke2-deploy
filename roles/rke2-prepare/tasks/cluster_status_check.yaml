@@ -10,10 +10,6 @@
   become_user: "{{ ansible_user }}"
   when: inventory_hostname == groups['servers'][0]
 
-- name: Set initial loop counter
-  set_fact:
-    loop_counter: 0
-
 - name: Ensure nodes and essential pods are ready (main loop)
   block:
   - name: Check if all nodes are ready
@@ -34,7 +30,7 @@
       kubectl get pods -n {{ item }} --no-headers | awk '{print $3}' | grep -v 'Running' | wc -l
     loop: "{{ essential_namespaces }}"
     register: pods_not_running_count
-    until: pods_not_running_count.results | map(attribute='stdout') | map('int') | sum == 0
+    until: pods_not_running_count | map(attribute='stdout') | map('int') | sum == 0
     retries: "{{ max_retries }}"
     delay: "{{ delay }}"
     changed_when: false
@@ -47,12 +43,9 @@
   - name: Check if any essential pods are not running
     fail:
       msg: "Not all essential pods are in 'Running' state."
-    when: pods_not_running_count.results | map(attribute='stdout') | map('int') | sum != 0
+    when: pods_not_running_count | map(attribute='stdout') | map('int') | sum != 0
 
   rescue:
-  - name: Increment loop counter
-    set_fact:
-      loop_counter: "{{ loop_counter | int + 1 }}"
 
   - name: Reboot nodes that are not ready
     shell: |
@@ -69,12 +62,10 @@
     pause:
       minutes: 1
 
-- name: Check loop counter
-  fail:
-    msg: "Cluster is not ready even after {{ max_loops }} attempts."
-  when: loop_counter | int >= max_loops
+  - include_task: cluster_status_check.yml
+
 
 - name: Add new servers or agents
   debug:
     msg: "Cluster is ready. Proceeding to add new servers or agents."
-  when: loop_counter | int < max_loops
+
