@@ -4,11 +4,15 @@
     cmd: "kubectl get nodes"
   register: kubectl_output
   until: "'connection refused' not in kubectl_output.stderr"
-  retries: 120
-  delay: 10
+  retries: "{{ max_retries }}"
+  delay: "{{ delay }}"
   changed_when: true
   become_user: "{{ ansible_user }}"
   when: inventory_hostname == groups['servers'][0]
+
+- name: Set initial loop counter
+  set_fact:
+    loop_counter: 0
 
 - name: Ensure nodes and essential pods are ready (main loop)
   block:
@@ -19,7 +23,6 @@
     retries: "{{ max_retries }}"
     delay: "{{ delay }}"
     changed_when: false
-    become_user: "{{ ansible_user }}"
 
   - name: Debug nodes_not_ready_count
     debug:
@@ -30,11 +33,10 @@
       kubectl get pods -n {{ item }} --no-headers | awk '{print $3}' | grep -v 'Running' | wc -l
     loop: "{{ essential_namespaces }}"
     register: pods_not_running_count
-    until: pods_not_running_count | map(attribute='stdout') | map('int') | sum == 0
+    until: pods_not_running_count.results | map(attribute='stdout') | map('int') | sum == 0
     retries: "{{ max_retries }}"
     delay: "{{ delay }}"
     changed_when: false
-    become_user: "{{ ansible_user }}"
 
   - name: Debug pods_not_running_count
     debug:
@@ -43,29 +45,28 @@
   - name: Check if any essential pods are not running
     fail:
       msg: "Not all essential pods are in 'Running' state."
-    when: pods_not_running_count | map(attribute='stdout') | map('int') | sum != 0
+    when: pods_not_running_count.results | map(attribute='stdout') | map('int') | sum != 0
 
   rescue:
+  - name: Increment loop counter
+    set_fact:
+      loop_counter: "{{ loop_counter | int + 1 }}"
 
-  - name: Reboot nodes that are not ready
-    shell: |
-      for node in $(kubectl get nodes --no-headers | awk '{print $1}'); do
-        if ! kubectl get node $node -o json | jq -e '.status.conditions[] | select(.type=="Ready" and .status=="True")'; then
-          node_ip=$(kubectl get node $node -o jsonpath='{.status.addresses[?(@.type=="InternalIP")].address}')
-          ssh -o StrictHostKeyChecking=no root@$node_ip "reboot"
-        fi
-      done
-    register: reboot_result
-    become_user: "{{ ansible_user }}"
+  - name: Reboot the node
+    reboot:
+      reboot_timeout: 300
+    when: loop_counter | int < max_loops
 
   - name: Wait before retrying
     pause:
-      minutes: 1
+      minutes: 2
 
-  - include_task: cluster_status_check.yml
-
+- name: Check loop counter
+  fail:
+    msg: "Cluster is not ready even after {{ max_loops }} attempts."
+  when: loop_counter | int >= max_loops
 
 - name: Add new servers or agents
   debug:
     msg: "Cluster is ready. Proceeding to add new servers or agents."
-
+  when: loop_counter | int < max_loops
