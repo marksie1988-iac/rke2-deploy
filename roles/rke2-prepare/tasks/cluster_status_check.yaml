@@ -19,7 +19,7 @@
   - name: Check if all nodes are ready
     shell: kubectl get nodes --no-headers | awk '{print $2}' | grep -v '\<Ready\>' | wc -l
     register: nodes_not_ready_count
-    until: nodes_not_ready_count.stdout | int == 0
+    until: nodes_not_ready_count.stdout | int == 0 and "'connection refused' not in kubectl_output.stderr"
     retries: "{{ max_retries }}"
     delay: "{{ delay }}"
     changed_when: false
@@ -33,7 +33,7 @@
       kubectl get pods -n kube-system --no-headers | awk '{print $3}' | grep -v 'Running' | grep -v 'Completed' | wc -l
     loop: "{{ essential_namespaces }}"
     register: pods_not_running_count
-    until: pods_not_running_count.stdout | int == 0
+    until: pods_not_running_count.stdout | int == 0  and "'connection refused' not in kubectl_output.stderr"
     retries: "{{ max_retries }}"
     delay: "{{ delay }}"
     changed_when: false
