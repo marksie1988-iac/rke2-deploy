@@ -10,44 +10,39 @@
   become_user: "{{ ansible_user }}"
   when: inventory_hostname == groups['servers'][0]
 
-- name: Set initial loop counter
+- name: Check if all nodes are ready
+  shell: kubectl get nodes --no-headers | awk '{print $2}' | grep -v '\<Ready\>' | wc -l
+  register: nodes_not_ready_count
+  until: (nodes_not_ready_count.stdout | int == 0) and "'connection refused' not in kubectl_output.stderr"
+  retries: "{{ max_retries }}"
+  delay: "{{ delay }}"
+  changed_when: false
+
+- name: Debug nodes_not_ready_count
+  debug:
+    var: nodes_not_ready_count
+
+- name: Check if all essential pods are running
+  shell: |
+    kubectl get pods -n kube-system --no-headers | awk '{print $3}' | grep -v 'Running' | grep -v 'Completed' | wc -l
+  loop: "{{ essential_namespaces }}"
+  register: pods_not_running_count
+  until: (pods_not_running_count.stdout | int == 0)  and "'connection refused' not in kubectl_output.stderr"
+  retries: "{{ max_retries }}"
+  delay: "{{ delay }}"
+  changed_when: false
+
+- name: Debug pods_not_running_count
+  debug:
+    var: pods_not_running_count
+
+- name: Set loop success if all nodes and pods are ready
   set_fact:
-    loop_counter: 0
+    loop_success: true
+  when: nodes_not_ready_count.stdout | int == 0 and pods_not_running_count.results | map(attribute='stdout') | map('int') | sum == 0
 
-- name: Ensure nodes and essential pods are ready (main loop)
+- name: Reboot the node if nodes or pods are not ready
   block:
-  - name: Check if all nodes are ready
-    shell: kubectl get nodes --no-headers | awk '{print $2}' | grep -v '\<Ready\>' | wc -l
-    register: nodes_not_ready_count
-    until: nodes_not_ready_count.stdout | int == 0 and "'connection refused' not in kubectl_output.stderr"
-    retries: "{{ max_retries }}"
-    delay: "{{ delay }}"
-    changed_when: false
-
-  - name: Debug nodes_not_ready_count
-    debug:
-      var: nodes_not_ready_count
-
-  - name: Check if all essential pods are running
-    shell: |
-      kubectl get pods -n kube-system --no-headers | awk '{print $3}' | grep -v 'Running' | grep -v 'Completed' | wc -l
-    loop: "{{ essential_namespaces }}"
-    register: pods_not_running_count
-    until: pods_not_running_count.stdout | int == 0  and "'connection refused' not in kubectl_output.stderr"
-    retries: "{{ max_retries }}"
-    delay: "{{ delay }}"
-    changed_when: false
-
-  - name: Debug pods_not_running_count
-    debug:
-      var: pods_not_running_count
-
-  - name: Check if any essential pods are not running
-    fail:
-      msg: "Not all essential pods are in 'Running' state."
-    when: pods_not_running_count.results | map(attribute='stdout') | map('int') | sum != 0
-
-  rescue:
   - name: Increment loop counter
     set_fact:
       loop_counter: "{{ loop_counter | int + 1 }}"
@@ -55,18 +50,9 @@
   - name: Reboot the node
     reboot:
       reboot_timeout: 300
-    when: loop_counter | int < max_loops
+    when: loop_counter < max_loops
 
   - name: Wait before retrying
     pause:
       minutes: 2
-
-- name: Check loop counter
-  fail:
-    msg: "Cluster is not ready even after {{ max_loops }} attempts."
-  when: loop_counter | int >= max_loops
-
-- name: Add new servers or agents
-  debug:
-    msg: "Cluster is ready. Proceeding to add new servers or agents."
-  when: loop_counter | int < max_loops
+  when: not loop_success

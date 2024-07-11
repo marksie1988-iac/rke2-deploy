@@ -130,4 +130,23 @@
 # Checks the status of the cluster, reboots if not ready quick enough
 - name: Include status check
   import_tasks: cluster_status_check.yaml
+  vars:
+    loop_counter: "{{ loop_counter }}"
+    max_retries: "{{ max_retries }}"
+    delay: "{{ delay }}"
+    max_loops: "{{ max_loops }}"
+    essential_namespaces: "{{ essential_namespaces }}"
+  until: loop_counter >= max_loops or loop_success
+  retries: "{{ max_loops }}"
+  delay: 0
   when: inventory_hostname == groups['servers'][0]
+
+- name: Fail if cluster is not ready after maximum attempts
+  fail:
+    msg: "Cluster is not ready even after {{ max_loops }} attempts."
+  when: loop_counter >= max_loops and inventory_hostname == groups['servers'][0]
+
+- name: Add new servers or agents
+  debug:
+    msg: "Cluster is ready. Proceeding to add new servers or agents."
+  when: loop_counter < max_loops and inventory_hostname == groups['servers'][0]

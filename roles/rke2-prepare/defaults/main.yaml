@@ -9,3 +9,5 @@ essential_namespaces:
 - calico-system
 - kube-system
 - tigera-operator
+loop_counter: 0
+loop_success: false
