@@ -130,12 +130,6 @@
 # Checks the status of the cluster, reboots if not ready quick enough
 - name: Include status check
   import_tasks: cluster_status_check.yaml
-  vars:
-    loop_counter: "{{ loop_counter }}"
-    max_retries: "{{ max_retries }}"
-    delay: "{{ delay }}"
-    max_loops: "{{ max_loops }}"
-    essential_namespaces: "{{ essential_namespaces }}"
   until: loop_counter >= max_loops or loop_success
   retries: "{{ max_loops }}"
   delay: 0
