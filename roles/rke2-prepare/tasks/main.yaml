@@ -143,4 +143,4 @@
 - name: Add new servers or agents
   debug:
     msg: "Cluster is ready. Proceeding to add new servers or agents."
-  when: loop_counter < max_loops and inventory_hostname == groups['servers'][0]
+  when: loop_success and inventory_hostname == groups['servers'][0]
