@@ -1,6 +1,6 @@
 
 # Set the CNI to be used, currently calico with this
-cni: calico
+cni: none
 
 max_retries: 10
 delay: 120
