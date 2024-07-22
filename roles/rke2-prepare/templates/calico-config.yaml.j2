@@ -1,16 +1,5 @@
-apiVersion: operator.tigera.io/v1
-kind: Installation
-metadata:
-  name: default
-spec:
-  calicoNetwork:
-    ipPools:
-    - cidr: 10.42.0.0/16
-      encapsulation: VXLANCrossSubnet
-      natOutgoing: Enabled
-{% if bgp_enabled %}
 ---
-apiVersion: projectcalico.org/v3
+apiVersion: crd.projectcalico.org/v1
 kind: BGPConfiguration
 metadata:
   name: default
@@ -24,7 +13,7 @@ spec:
   serviceLoadBalancerIPs:
     - cidr: 172.18.192.0/18
 ---
-apiVersion: projectcalico.org/v3
+apiVersion: crd.projectcalico.org/v1
 kind: BGPPeer
 metadata:
   name: bgppeer-to-opnsense
@@ -33,10 +22,3 @@ spec:
   asNumber: "{{ asNumber }}"
   keepOriginalNextHop: true
   maxRestartTime: 15m
-{% endif %}
----
-apiVersion: operator.tigera.io/v1
-kind: APIServer
-metadata:
-  name: default
-spec: {}
