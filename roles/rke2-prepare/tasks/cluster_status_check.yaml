@@ -18,6 +18,8 @@
   delay: "{{ delay }}"
   become_user: "{{ ansible_user }}"
   changed_when: false
+  ignore_errors: true
+  failed_when: false
 
 - name: Debug nodes_not_ready_count
   debug:
@@ -33,6 +35,8 @@
   delay: "{{ delay }}"
   become_user: "{{ ansible_user }}"
   changed_when: false
+  ignore_errors: true
+  failed_when: false
 
 - name: Debug pods_not_running_count
   debug:
