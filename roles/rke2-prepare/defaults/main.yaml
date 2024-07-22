@@ -1,13 +1,5 @@
 
 # Set the CNI to be used, currently calico with this
 cni: calico
-
-max_retries: 10
-delay: 120
-max_loops: 3
-essential_namespaces:
-- calico-system
-- kube-system
-- tigera-operator
-loop_counter: 0
-loop_success: false
+peerIP: "172.16.20.1" # Default peer IP
+asNumber: 64512 # Default ASN
