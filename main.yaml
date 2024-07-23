@@ -1,16 +1,3 @@
-# Hello, thanks for using my playbook, hopefully you can help to improve it.
-# Things that need adding: (there are many more)
-# 1) Support different OS & architectures
-# 2) Support multiple CNIs
-# 3) Improve the wait logic
-# 4) Use kubernetes Ansible plugins more sensibly
-# 5) Optimise flow logic
-# 6) Clean up
-
-###############################################################
-# MAKE SURE YOU CHANGE group_vars/all.yaml VARIABLES!!!!!!!!!!!
-###############################################################
-
 # bootstraps first server and copies configs for others/agents
 - name: Prepare all nodes
   hosts: rke2
@@ -26,13 +13,6 @@
   gather_facts: true
   roles:
     - kube-vip
-
-# Deploy CNI
-#- name: Deploy CNI
-#  hosts: servers
-#  gather_facts: true
-#  roles:
-#    - deploy-cni
 
 # bootstraps the first server, copies configs to nodes, saves token to use later
 - name: Prepare RKE2 on Servers and Agents
