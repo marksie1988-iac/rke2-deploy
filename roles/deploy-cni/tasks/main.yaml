@@ -1,3 +1,0 @@
-- name: Include tasks for Calico
-  include_tasks: calico.yaml
-  when: cni_engine == "calico" and inventory_hostname == groups['servers'][0]
