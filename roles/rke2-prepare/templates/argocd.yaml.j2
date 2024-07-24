@@ -5,12 +5,13 @@ metadata:
   name: argocd
   namespace: kube-system
 spec:
-  chart: stable/argo-cd
+  repo: https://argoproj.github.io/argo-helm
+  chart: argo-cd
   targetNamespace: argocd
   valuesContent: |-
     server:
       service:
-        type: LoadBalancer
+        type: ClusterIP
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
