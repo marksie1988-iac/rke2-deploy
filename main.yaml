@@ -5,7 +5,6 @@
   become: true
   roles:
     - prepare-nodes
-    - rke2-download
 
 # Creates RKE2 bootstrap manifests folder and copies kube-vip template over (configured with variables)
 - name: Deploy Kube VIP
@@ -34,3 +33,11 @@
   gather_facts: true
   roles:
     - add-agent
+
+
+# Apply any manifests required
+- name: Apply manifests after cluster is created
+  hosts: "{{ groups['servers'][0] }}"
+  gather_facts: true
+  roles:
+    - apply-manifests

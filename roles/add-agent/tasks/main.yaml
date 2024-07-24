@@ -8,6 +8,14 @@
     mode: '0644'
   when: inventory_hostname in groups['agents']
 
+# Download and install RKE2 on new master servers, must run as root
+- name: Download and install RKE2
+  shell: curl -sfL https://get.rke2.io | sh -
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: root
+
 # Check agents have restarted to pick up config
 - name: Ensure RKE2 agents are enabled and running
   ansible.builtin.systemd:
