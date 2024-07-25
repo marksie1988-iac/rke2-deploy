@@ -1,3 +1,4 @@
 deploy_argocd: true
 argo_repo: "https://github.com/marksie1988-iac/helm-argocd-apps.git"
 argo_repo_path: "charts/argocd-apps"
+argo_values_file: values_td-rke.yaml

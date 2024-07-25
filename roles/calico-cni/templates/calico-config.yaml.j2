@@ -1,4 +1,3 @@
----
 apiVersion: operator.tigera.io/v1
 kind: Installation
 metadata:
@@ -9,7 +8,7 @@ spec:
     ipPools:
     - name: default-ipv4-ippool
       blockSize: 26
-      cidr: 10.43.0.0/16
+      cidr: 10.42.0.0/16
       encapsulation: VXLANCrossSubnet
       natOutgoing: Enabled
       nodeSelector: all()
@@ -25,31 +24,18 @@ kind: BGPConfiguration
 metadata:
   name: default
 spec:
-  asNumber: 64513
   nodeToNodeMeshEnabled: true
+  asNumber: 64512
   serviceClusterIPs:
     - cidr: 10.43.0.0/16
 ---
 apiVersion: crd.projectcalico.org/v1
 kind: BGPPeer
 metadata:
-  name: bgppeer-to-opnsense
+  name: bgp-peer-to-router
 spec:
   peerIP: "{{ peerIP }}"
-  asNumber: "{{ asNumber }}"
+  asNumber: {{ asNumber }}
   keepOriginalNextHop: true
   maxRestartTime: 15m
----
-apiVersion: crd.projectcalico.org/v1
-kind: IPPool
-metadata:
-  name: bgp-pods
-spec:
-  disabled: false
-  blockSize: 0
-  cidr: 10.43.0.0/16
-  ipipMode: Never
-  natOutgoing: true
-  nodeSelector: all()
-  vxlanMode: CrossSubnet
 ---

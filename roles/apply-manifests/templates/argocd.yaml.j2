@@ -1,9 +1,4 @@
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: argocd
----
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
@@ -29,6 +24,9 @@ spec:
     repoURL: {{ argo_repo }}
     targetRevision: HEAD
     path: {{ argo_repo_path }}
+    helm:
+      valueFiles:
+        - {{ argo_values_file }}
   destination:
     server: https://kubernetes.default.svc
     namespace: default

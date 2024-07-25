@@ -1,16 +1,15 @@
-# Deploy metal IP Pool to Server 1
-- name: Copy ArgoCD manifest template
-  ansible.builtin.template:
-    src: argocd.yaml.j2
-    dest: /home/{{ ansible_user }}/argocd.yaml
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: '0755'
-  when: inventory_hostname == groups['servers'][0] and deploy_argocd == true
-
-- name: Apply ArgoCD manifest template
+- name: Check all nodes are ready
   ansible.builtin.command:
-    cmd: kubectl apply -f /home/{{ ansible_user }}/argocd.yaml
+    cmd: kubectl get nodes | grep -w "NotReady" | wc -l
+  register: cmd_output
+  until: cmd_output.stdout | int == 0
+  retries: 120
+  delay: 10
+  become: yes
   become_user: "{{ ansible_user }}"
-  changed_when: true
-  when: inventory_hostname == groups['servers'][0] and deploy_argocd == true
+  ignore_errors: true
+
+- name: Apply Argocd
+  ansible.builtin.import_tasks:
+    argocd.yaml
+  when: deploy_argocd == true

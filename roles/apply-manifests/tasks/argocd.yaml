@@ -1,0 +1,31 @@
+- name: Create argocd namespace
+  ansible.builtin.command:
+    cmd: kubectl create namespace argocd
+  register: kubectl_output
+  until: "'created' in kubectl_output.stdout or 'AlreadyExists' in kubectl_output.stderr"
+  changed_when: true
+  retries: 120
+  delay: 10
+  become_user: "{{ ansible_user }}"
+  ignore_errors: true
+
+- name: Apply ArgoCD manifest template
+  ansible.builtin.command:
+    cmd: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/master/manifests/install.yaml
+  become_user: "{{ ansible_user }}"
+  changed_when: true
+
+# Deploy ArgoCD
+- name: Copy ArgoCD manifest template
+  ansible.builtin.template:
+    src: argocd.yaml.j2
+    dest: /home/{{ ansible_user }}/argocd.yaml
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+
+- name: Apply ArgoCD manifest template
+  ansible.builtin.command:
+    cmd: kubectl apply -f /home/{{ ansible_user }}/argocd.yaml
+  become_user: "{{ ansible_user }}"
+  changed_when: true

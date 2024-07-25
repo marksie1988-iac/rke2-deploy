@@ -20,6 +20,13 @@
   roles:
     - rke2-prepare
 
+# Adds calico network to the cluster
+- name: Add Claico networking
+  hosts: "{{ groups['servers'][0] }}"
+  gather_facts: true
+  roles:
+    - calico-cni
+
 # Adds additional servers using the token from the previous task
 - name: Add additional RKE2 Servers
   hosts: servers

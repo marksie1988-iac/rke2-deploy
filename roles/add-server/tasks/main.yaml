@@ -1,3 +1,13 @@
+# Copy server config with token to all servers except server 1 (this has token)
+- name: Deploy RKE2 server Configuration
+  ansible.builtin.template:
+    src: rke2-server-config.j2
+    dest: /etc/rancher/rke2/config.yaml
+    owner: root
+    group: root
+    mode: '0644'
+  when: inventory_hostname != groups['servers'][0]
+
 # Keep checking the cluster API until it's functioning (deployed)
 - name: Wait for cluster API to be ready (can take 5-10 mins depending on internet/hardware)
   ansible.builtin.command:

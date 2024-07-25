@@ -1,6 +1,6 @@
 {% for host in groups['rke2'] %}
 ---
-apiVersion: projectcalico.org/v3
+apiVersion: crd.projectcalico.org/v1
 kind: CalicoNodeStatus
 metadata:
   name: "calico-node-{{ host }}"
