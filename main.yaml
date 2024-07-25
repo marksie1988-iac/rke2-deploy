@@ -5,7 +5,6 @@
   become: true
   roles:
     - prepare-nodes
-    - rke2-download
 
 # Creates RKE2 bootstrap manifests folder and copies kube-vip template over (configured with variables)
 - name: Deploy Kube VIP

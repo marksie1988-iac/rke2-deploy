@@ -13,6 +13,16 @@
     group: root
     mode: '0644'
 
+# Download and install RKE2 on new master servers, must run as root
+- name: Download and install RKE2
+  shell: curl -sfL https://get.rke2.io | sh -
+  args:
+    executable: /bin/bash
+    become: true
+    become_user: root
+  when: inventory_hostname == groups['servers'][0]
+
+
 # we enable the first server to generate tokens etc, copy this afterwards to other servers
 - name: Ensure RKE2 server is enabled and running
   ansible.builtin.systemd:
@@ -20,7 +30,7 @@
     enabled: true
     state: restarted
     daemon_reload: true
-  when: inventory_hostname in groups['servers'][0]
+  when: inventory_hostname == groups['servers'][0]
 
 # wait for node token to be availale so that we can copy it, we need this to join other nodes
 - name: Wait for node-token
