@@ -1,0 +1,26 @@
+- name: Render CalicoConfig manifest template
+  ansible.builtin.template:
+    src: calico-config.yaml.j2
+    dest: /var/lib/rancher/rke2/server/manifests/calico-config.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups['servers'][0] and bgp_enabled == true
+
+- name: Render CalicoNodeStatus manifest template
+  ansible.builtin.template:
+    src: calico-node-status.yaml.j2
+    dest: /var/lib/rancher/rke2/server/manifests/calico-node-status.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups['servers'][0] and bgp_enabled == true
+
+- name: Download calico tigera-operator manifest
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
+    dest: /var/lib/rancher/rke2/server/manifests/tigera-operator.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups['servers'][0]

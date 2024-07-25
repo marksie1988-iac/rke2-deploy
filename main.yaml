@@ -34,3 +34,11 @@
   gather_facts: true
   roles:
     - add-agent
+
+
+# Finish kube-vip, add metallb
+- name: Apply manifests after cluster is created
+  hosts: "{{ groups['servers'][0] }}"
+  gather_facts: true
+  roles:
+    - apply-manifests

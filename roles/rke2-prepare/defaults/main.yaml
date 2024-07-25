@@ -1,9 +1,0 @@
-
-# Set the CNI to be used, currently calico with this
-cni: calico
-peerIP: "172.16.20.1" # Default peer IP
-asNumber: 64512 # Default ASN
-bgp_enabled: true # Use Calico BGP
-deploy_argocd: true
-argo_repo: "https://github.com/marksie1988-iac/helm-argocd-apps.git"
-argo_repo_path: "charts/argocd-apps"

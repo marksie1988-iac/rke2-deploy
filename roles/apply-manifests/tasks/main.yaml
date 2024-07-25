@@ -1,0 +1,10 @@
+
+# Renders ArgoCD to manage deployment of services
+- name: Render ArgoCD manifest template
+  ansible.builtin.template:
+    src: argocd.yaml.j2
+    dest: /var/lib/rancher/rke2/server/manifests/argocd.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups['servers'][0] and deploy_argocd == true

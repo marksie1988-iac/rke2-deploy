@@ -1,0 +1,55 @@
+---
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  # Configures Calico networking.
+  calicoNetwork:
+    ipPools:
+    - name: default-ipv4-ippool
+      blockSize: 26
+      cidr: 10.43.0.0/16
+      encapsulation: VXLANCrossSubnet
+      natOutgoing: Enabled
+      nodeSelector: all()
+---
+apiVersion: operator.tigera.io/v1
+kind: APIServer
+metadata:
+  name: default
+spec: {}
+---
+apiVersion: crd.projectcalico.org/v1
+kind: BGPConfiguration
+metadata:
+  name: default
+spec:
+  asNumber: 64513
+  nodeToNodeMeshEnabled: true
+  serviceClusterIPs:
+    - cidr: 10.43.0.0/16
+---
+apiVersion: crd.projectcalico.org/v1
+kind: BGPPeer
+metadata:
+  name: bgppeer-to-opnsense
+spec:
+  peerIP: "{{ peerIP }}"
+  asNumber: "{{ asNumber }}"
+  keepOriginalNextHop: true
+  maxRestartTime: 15m
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: bgp-pods
+spec:
+  disabled: false
+  blockSize: 0
+  cidr: 10.43.0.0/16
+  ipipMode: Never
+  natOutgoing: true
+  nodeSelector: all()
+  vxlanMode: CrossSubnet
+---
