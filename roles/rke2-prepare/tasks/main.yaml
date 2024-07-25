@@ -4,14 +4,15 @@
     state: directory
     mode: '0644'
 
-# Copy server config to servers for bootstrap - additional servers will be done via add-server role
+# Copy server config to server 1 for bootstrap - we need to change server2 & 3 later with the token
 - name: Deploy RKE2 server Configuration
   ansible.builtin.template:
-    src: rke2-server-config.j2
+    src: templates/rke2-server-config.j2
     dest: /etc/rancher/rke2/config.yaml
     owner: root
     group: root
     mode: '0644'
+  when: inventory_hostname in groups['servers']
 
 # Download and install RKE2 on new master servers, must run as root
 - name: Download and install RKE2
@@ -21,7 +22,6 @@
   become: true
   become_user: root
   when: inventory_hostname == groups['servers'][0]
-
 
 # we enable the first server to generate tokens etc, copy this afterwards to other servers
 - name: Ensure RKE2 server is enabled and running
