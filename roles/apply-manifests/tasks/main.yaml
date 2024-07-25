@@ -1,4 +1,19 @@
-# Deploy metal IP Pool to Server 1
+
+- name: Apply ArgoCD manifest template
+  ansible.builtin.command:
+    cmd: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/application-crd.yaml
+  become_user: "{{ ansible_user }}"
+  changed_when: true
+  when: inventory_hostname == groups['servers'][0] and deploy_argocd == true
+
+- name: Apply ArgoCD manifest template
+  ansible.builtin.command:
+    cmd: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/appproject-crd.yaml
+  become_user: "{{ ansible_user }}"
+  changed_when: true
+  when: inventory_hostname == groups['servers'][0] and deploy_argocd == true
+
+# Deploy ArgoCD
 - name: Copy ArgoCD manifest template
   ansible.builtin.template:
     src: argocd.yaml.j2

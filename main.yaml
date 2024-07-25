@@ -34,6 +34,12 @@
   roles:
     - add-agent
 
+# Adds agents to the cluster
+- name: Add Claico networking
+  hosts: "{{ groups['servers'][0] }}"
+  gather_facts: true
+  roles:
+    - calico-cni
 
 # Apply any manifests required
 - name: Apply manifests after cluster is created
