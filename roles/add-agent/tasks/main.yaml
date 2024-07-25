@@ -13,8 +13,8 @@
   shell: curl -sfL https://get.rke2.io | sh -
   args:
     executable: /bin/bash
-    become: true
-    become_user: root
+  become: true
+  become_user: root
 
 # Check agents have restarted to pick up config
 - name: Ensure RKE2 agents are enabled and running

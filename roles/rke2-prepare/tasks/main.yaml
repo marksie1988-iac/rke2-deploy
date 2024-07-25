@@ -18,8 +18,8 @@
   shell: curl -sfL https://get.rke2.io | sh -
   args:
     executable: /bin/bash
-    become: true
-    become_user: root
+  become: true
+  become_user: root
   when: inventory_hostname == groups['servers'][0]
 
 
