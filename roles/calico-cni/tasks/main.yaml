@@ -5,7 +5,7 @@
     owner: root
     group: root
     mode: "0644"
-  when: inventory_hostname == groups['servers'][0] and bgp_enabled == true
+  when: inventory_hostname == groups['servers'][0]
 
 - name: Render CalicoNodeStatus manifest template
   ansible.builtin.template:
@@ -14,13 +14,28 @@
     owner: root
     group: root
     mode: "0644"
-  when: inventory_hostname == groups['servers'][0] and bgp_enabled == true
-
-- name: Download calico tigera-operator manifest
-  ansible.builtin.get_url:
-    url: https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
-    dest: /var/lib/rancher/rke2/server/manifests/tigera-operator.yaml
-    owner: root
-    group: root
-    mode: "0644"
   when: inventory_hostname == groups['servers'][0]
+
+- name: Create calicoctl directory
+  ansible.builtin.file:
+    path: /etc/calico
+    state: directory
+    mode: '0755'
+
+- name: Apply calicoctl config
+  ansible.builtin.template:
+    src: calicoctl.cfg.j2
+    dest: /etc/calico/calicoctl.cfg
+  become: true
+
+- name: Download calicoctl
+  get_url:
+    url: https://github.com/projectcalico/calico/releases/download/v3.28.0/calicoctl-linux-amd64
+    dest: /usr/local/bin/calicoctl
+    mode: '0755'
+
+- name: Ensure calicoctl is executable
+  file:
+    path: /usr/local/bin/calicoctl
+    mode: '0755'
+    state: file
