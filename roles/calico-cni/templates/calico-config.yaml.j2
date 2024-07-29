@@ -24,5 +24,8 @@ kind: BGPPeer
 metadata:
   name: bgp-peer-to-router
 spec:
-  peerIP: {{ peerIP }}
-  asNumber: {{ asNumber }}
+  peerIP: "{{ peerIP }}"
+  asNumber: "{{ asNumber }}"
+  keepOriginalNextHop: true
+  maxRestartTime: 15m
+---
