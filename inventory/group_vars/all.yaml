@@ -1,7 +1,4 @@
----
 vip: 172.16.20.100
-as_number: 64512
-router_peer_ip: 172.16.20.1
 ansible_become: true
 ansible_become_method: sudo
 ################################################################################
@@ -10,3 +7,5 @@ ansible_become_method: sudo
 # vip_interface: "eth0"
 # rke2_version: "latest"
 # rke2_install_dir: "/usr/local/bin"
+# as_number: 64514
+# router_peer_ip: 172.16.20.1
