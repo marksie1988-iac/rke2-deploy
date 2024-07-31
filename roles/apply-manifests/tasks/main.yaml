@@ -2,11 +2,12 @@
   ansible.builtin.command:
     cmd: kubectl create namespace argocd
   register: kubectl_output
-  until: "'created' in kubectl_output.stdout or 'already exists' in kubectl_output.stderr"
+  until: "'created' in kubectl_output.stdout or 'AlreadyExists' in kubectl_output.stderr"
+  changed_when: true
   retries: 120
   delay: 10
-  changed_when: true
   become_user: "{{ ansible_user }}"
+  ignore_errors: true
   when: inventory_hostname == groups['servers'][0] and deploy_argocd == true
 
 - name: Apply ArgoCD manifest template

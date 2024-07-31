@@ -1,18 +1,28 @@
-apiVersion: helm.cattle.io/v1
-kind: HelmChartConfig
+apiVersion: operator.tigera.io/v1
+kind: Installation
 metadata:
-  name: rke2-calico
-  namespace: kube-system
+  name: default
 spec:
-  valuesContent: |-
-    installation:
-      calicoNetwork:
-        bgp: Enabled
+  # Configures Calico networking.
+  calicoNetwork:
+    ipPools:
+    - name: default-ipv4-ippool
+      blockSize: 26
+      cidr: 10.42.0.0/16
+      encapsulation: VXLANCrossSubnet
+      natOutgoing: Enabled
+      nodeSelector: all()
+---
+apiVersion: operator.tigera.io/v1
+kind: APIServer
+metadata:
+  name: default
+spec: {}
 ---
 apiVersion: crd.projectcalico.org/v1
 kind: BGPConfiguration
 metadata:
-  name: rke2-calico
+  name: default
 spec:
   nodeToNodeMeshEnabled: true
   asNumber: 64512
