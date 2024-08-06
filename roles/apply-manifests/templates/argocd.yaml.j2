@@ -24,6 +24,9 @@ spec:
     repoURL: {{ argo_repo }}
     targetRevision: HEAD
     path: {{ argo_repo_path }}
+    helm:
+      valueFiles:
+        - {{ argo_values_file }}
   destination:
     server: https://kubernetes.default.svc
     namespace: default

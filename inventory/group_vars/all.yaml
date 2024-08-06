@@ -7,5 +7,3 @@ ansible_become_method: sudo
 # vip_interface: "eth0"
 # rke2_version: "latest"
 # rke2_install_dir: "/usr/local/bin"
-# as_number: 64514
-# router_peer_ip: 172.16.20.1
