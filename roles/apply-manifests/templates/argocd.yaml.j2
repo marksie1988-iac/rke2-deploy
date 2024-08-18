@@ -11,7 +11,9 @@ spec:
   valuesContent: |-
     server:
       service:
-        type: ClusterIP
+      #  type: ClusterIP
+        type: NodePort
+        nodePort: 30080
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
